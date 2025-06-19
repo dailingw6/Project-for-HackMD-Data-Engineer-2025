@@ -1,10 +1,10 @@
-# 🧬 Schema Mapping: arXiv Metadata to Tables
+#  Schema Mapping: arXiv Metadata to Tables
 
 This guide maps raw XML/JSON fields from arXiv into the normalized tables produced by the Glue ETL job.
 
 ---
 
-## 📄 Paper Table (`paper`)
+##  Paper Table (`paper`)
 | Column       | Source Field        | Notes                        |
 |--------------|---------------------|------------------------------|
 | paper_id     | `entry.id`          | Full arXiv ID URL            |
@@ -19,7 +19,7 @@ This guide maps raw XML/JSON fields from arXiv into the normalized tables produc
 
 ---
 
-## 👤 Contributor Table (`contributor`)
+##  Contributor Table (`contributor`)
 | Column        | Source Field                | Notes                       |
 |---------------|-----------------------------|-----------------------------|
 | contributor_id| Auto-generated              | Surrogate key              |
@@ -28,7 +28,7 @@ This guide maps raw XML/JSON fields from arXiv into the normalized tables produc
 
 ---
 
-## 📄↔👤 Paper_Contributor Table (`paper_contributor`)
+##  Paper_Contributor Table (`paper_contributor`)
 | Column        | Source Field         | Notes                          |
 |---------------|----------------------|---------------------------------|
 | paper_id      | from paper           | Foreign key                    |
@@ -38,7 +38,7 @@ This guide maps raw XML/JSON fields from arXiv into the normalized tables produc
 
 ---
 
-## 🏷️ Category Table (`category`)
+##  Category Table (`category`)
 | Column       | Source Field      | Notes             |
 |--------------|-------------------|-------------------|
 | category_id  | Auto-generated    |                   |
@@ -46,7 +46,7 @@ This guide maps raw XML/JSON fields from arXiv into the normalized tables produc
 
 ---
 
-## 📄↔🏷️ Paper_Category Table (`paper_category`)
+##  Paper_Category Table (`paper_category`)
 | Column       | Source Field      | Notes                     |
 |--------------|-------------------|---------------------------|
 | paper_id     | from paper        | FK                        |
@@ -54,7 +54,7 @@ This guide maps raw XML/JSON fields from arXiv into the normalized tables produc
 
 ---
 
-## 🧾 Paper_Submission Table (`paper_submission`)
+##  Paper_Submission Table (`paper_submission`)
 | Column       | Source Field            | Notes                  |
 |--------------|-------------------------|------------------------|
 | paper_id     | from paper              |                        |
@@ -64,10 +64,9 @@ This guide maps raw XML/JSON fields from arXiv into the normalized tables produc
 
 ---
 
-## 📌 Notes
+##  Notes
 - All relational links are based on surrogate keys or arXiv IDs
 - One paper → many authors, categories, and versions
-- Full schema aligns with expected usage by Glue/Athena
 
-For transformation logic, see [`glue_etl_job.py`](../glue/glue_etl_job.py).
+
 
