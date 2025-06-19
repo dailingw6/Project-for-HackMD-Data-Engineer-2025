@@ -1,10 +1,10 @@
-# 📈 Monitoring & Observability
+#  Monitoring & Observability
 
 This guide outlines how to monitor and track the health of each pipeline component across Lambda, S3, and Glue.
 
 ---
 
-## 📊 Key Monitoring Goals
+##  Key Monitoring Goals
 - Detect failed Lambda runs or incomplete manifest
 - Track data completeness (missing chunks, empty files)
 - Alert on parsing or transformation errors
@@ -12,9 +12,9 @@ This guide outlines how to monitor and track the health of each pipeline compone
 
 ---
 
-## 🔁 Lambda: APItoXML
+##  Lambda: APItoXML
 
-### ✅ Logs
+###  Logs
 - View in: **CloudWatch → Log Groups → /aws/lambda/OAIHarvesterLambda**
 - Key events:
   - Start and end of each run
@@ -22,46 +22,46 @@ This guide outlines how to monitor and track the health of each pipeline compone
   - Retry and timeout logs
   - Manifest written with status = SUCCESS/FAILED
 
-### ✅ Metrics
+###  Metrics
 Enable via CloudWatch:
 - `Invocations`
 - `Errors`
 - `Duration`
 - Custom: `manifest.status == FAILED`
 
-### ✅ Alerts
+###  Alerts
 Set CloudWatch Alarm:
 - `Errors > 0` within 5-minute period
 - `manifest.status` logged as FAILED (via pattern filter)
 
 ---
 
-## 📥 Lambda: XMLtoJSON
+##  Lambda: XMLtoJSON
 
-### ✅ Logs
+###  Logs
 - View in: **/aws/lambda/XMLtoJSONLambda**
 - Per-file success/failure logs
 - Count of parsed entries per XML
 
-### ✅ Metrics
+###  Metrics
 - `Invocations`
 - `Errors`
 - Custom: empty JSON (0 entries)
 
 ---
 
-## 🧠 Glue ETL Job
+##  Glue ETL Job
 
-### ✅ Logs
+###  Logs
 - Glue Console → Jobs → `GLUEETLJob` → Runs
 - Log Group: `/aws-glue/jobs/output`
 
-### ✅ Metrics
+###  Metrics
 - Job Success/Fail status
 - # of records written per table
 - Job duration
 
-### ✅ Alerts
+###  Alerts
 - CloudWatch alarm on failed Glue job
 ```json
 { $.jobRunState = "FAILED" }
@@ -87,7 +87,7 @@ Use this to:
 
 ---
 
-## 🛑 Common Failure Cases
+##  Common Failure Cases
 | Stage | Issue | Resolution |
 |-------|-------|------------|
 | API | Resumption token lost | Retry with saved token (S3) |
@@ -97,12 +97,12 @@ Use this to:
 
 ---
 
-## 🧪 Monitoring Dashboard Proposal
+##  Monitoring Dashboard Proposal
 
-### 🔭 Overview
-We propose building a centralized monitoring dashboard to visualize the health and status of the pipeline using Amazon CloudWatch + QuickSight or Grafana.
+###  Overview
+I propose building a centralized monitoring dashboard to visualize the health and status of the pipeline using Amazon CloudWatch + QuickSight or Grafana.
 
-### 📌 Components Tracked
+###  Components Tracked
 | Stage         | Metrics                                 |
 |---------------|------------------------------------------|
 | APItoXML      | Invocation count, error count, duration, manifest status |
@@ -110,23 +110,11 @@ We propose building a centralized monitoring dashboard to visualize the health a
 | Glue ETL      | Job status, duration, record count       |
 | Manifest File | # of failed/successful chunks            |
 
-### 📊 Dashboard Implementation Options
+###  Dashboard Implementation Options
 | Option               | Tools                  | Notes                          |
 |----------------------|------------------------|-------------------------------|
 | **CloudWatch**       | Native AWS             | Simple, no extra infra needed |
 | **QuickSight**       | S3 + Athena            | Rich visuals, joins manifest  |
 | **Grafana**          | CloudWatch plugin      | Visual + alerting flexibility |
 
-### 🛠️ MVP Setup
-1. Export structured manifest + logs
-2. Create Athena table over S3 logs
-3. Use QuickSight to build:
-   - 📈 Manifest failure trends
-   - 📊 Entry count per file
-   - ✅ Success rate by date
 
-For future observability needs, consider OpenSearch indexing or Grafana dashboards for real-time inspection.
-
----
-
-For setup instructions, see [setup_guide.md](./setup_guide.md).
