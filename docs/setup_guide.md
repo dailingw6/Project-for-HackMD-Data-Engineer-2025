@@ -1,10 +1,10 @@
-# 🛠️ Setup Guide
+#  Setup Guide
 
 This guide walks through the complete setup process for deploying and running the arXiv metadata pipeline.
 
 ---
 
-## 📦 Requirements
+##  Requirements
 
 - AWS CLI configured with sufficient permissions
 - Python 3.9+
@@ -12,7 +12,7 @@ This guide walks through the complete setup process for deploying and running th
 
 ---
 
-## 🧰 Step-by-Step Setup
+##  Step-by-Step Setup
 
 ### 1. Clone the Repo
 
@@ -57,8 +57,8 @@ This script will:
 
 Use scripts or console to configure:
 
-- ⏰ `APItoXML`: EventBridge (every 5 min)
-- 📥 `XMLtoJSON`: S3 trigger on `raw/latest/{date}/`
+-  `APItoXML`: EventBridge (every 5 min)
+-  `XMLtoJSON`: S3 trigger on `raw/latest/{date}/`
 
 You can also use the script:
 
@@ -91,7 +91,7 @@ s3://arxiv-raw-data-bucket/tables/
 
 ---
 
-## 🐍 Install Python Dependencies (Locally)
+##  Install Python Dependencies (Locally)
 
 If you want to simulate Lambda logic locally:
 
@@ -101,13 +101,11 @@ pip install boto3 requests
 
 ---
 
-## 🚨 Tips & Warnings
+##  Tips & Warnings
 
 - Ensure Lambda timeout is high enough (≥ 1 min for OAI)
 - Validate manifest file status before triggering Glue
 - Monitor CloudWatch logs for each Lambda
 
----
 
-For architecture or pipeline explanation, see architecture.md.
 
