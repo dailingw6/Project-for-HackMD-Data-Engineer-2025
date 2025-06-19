@@ -75,17 +75,17 @@ s3://arxiv-raw-data-bucket/
 ##  Design Considerations
 
 * **Traceability:** Every stage includes logging and manifest tracking
-* **Observability:** Failures are captured in manifest + CloudWatch alerts (optional)
+* **Observability:** Failures are captured in manifest + CloudWatch alerts 
 * **Parallelism:** Both XML parsing and Glue transformations are parallelizable
 * **Fault-tolerant:** Retries, fallbacks, and stage-specific backup mechanisms
 
 ---
 
-##  Example Trigger Timeline
+##  Trigger Timeline
 
 * `APItoXML`: Every 5 minutes via CloudWatch Rule
 * `XMLtoJSON`: Instantly on S3 upload
-* `GLUEETL`: Periodically (or based on manifest success)
+* `GLUEETL`: Periodically 
 
 ---
 
