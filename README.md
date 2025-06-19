@@ -1,79 +1,88 @@
-# Project-for-HackMD-Data-Engineer-2025
+# arxiv-pipeline
+
+A scalable and fault-tolerant data pipeline for harvesting, processing, and transforming arXiv metadata using AWS services. Built for the HackMD Data Engineer Case Study.
 
 ## Overview
-This project implements a reusable, scalable, and observable data pipeline to collect, process, and store metadata from the arXiv API. The system is designed to support downstream use cases such as academic dashboards, institutional rankings, and paper recommendation engines. It leverages AWS Lambda, S3, DynamoDB, and CloudWatch to ensure modularity and performance while adhering to modern data engineering best practices.
 
-## Architecture & Design Rationale
-System Architecture Highlights:
-Data Collection: A Lambda function periodically queries the arXiv API, processes the metadata in JSON format, and stores raw records in S3 and structured records in DynamoDB.
+This project ingests metadata from arXiv using the OAI-PMH protocol, processes XML into structured JSON, and transforms it into relational-style tables using AWS Glue.
 
-Data Modeling: DynamoDB tables follow a relational-style design, separating paper, category, and paper_category for join-like flexibility without compromising NoSQL performance.
+### Key Features
 
-Observability: CloudWatch logs, custom metrics, and alarms monitor Lambda executions, error counts, and API response anomalies.
+* Scheduled incremental harvesting of arXiv metadata
+* XML parsing and JSON normalization via Lambda
+* Glue ETL job that produces dimensional tables in Parquet
+* S3-based data lake with backup and staging
+* Supports analytical dashboards, institutional rankings, NLP-based recommendations
 
-Configurability: Parameters such as search_query, start, and max_results are externalized to support flexible ingestion strategies across disciplines or topics.
+## Tech Stack
 
-Rationale for Design:
-Separation of raw and structured layers (S3 vs. DynamoDB) allows both machine learning and analytical users to access data in formats suited to their needs.
+| Layer          | Tools                                              |
+| -------------- | -------------------------------------------------- |
+| Ingestion      | AWS Lambda (Python), CloudWatch, S3                |
+| Processing     | Python, XML parsing, JSON Lines                    |
+| Storage        | S3 (staging/latest/backup), Athena-ready structure |
+| Transformation | AWS Glue (PySpark)                                 |
+| Monitoring     | CloudWatch Logs, manifest status                   |
 
-Use of JSON aligns with arXiv's API structure and simplifies parsing; this is more efficient than handling large zipped XML datasets.
+## Directory Structure
 
-Category normalization supports many-to-many relationships, enabling downstream co-authorship graphs and multi-disciplinary queries.
+```
+arxiv-pipeline/
+├── README.md                     # Project overview and quickstart
+├── setup/                        # Infra setup scripts
+├── lambda/                       # Lambda function code
+├── glue/                         # Glue ETL job code and schema
+├── docs/                         # Markdown documentation
+└── tests/                        # Unit test scripts
+```
 
-## Performance and Scalability Considerations
-Lambda Streaming to S3: JSON is streamed directly to S3, avoiding memory-intensive operations (especially useful when working with high-volume queries).
+## Modules
 
-Chunked API Pagination: ArXiv's paginated API is handled in a loop with backoff and checkpointing logic to safely resume ingestion.
+### 1. `lambda/api_to_xml`
 
-DynamoDB Table Design:
+* Scheduled via EventBridge to run every 5–15 minutes
+* Fetches new arXiv records using OAI-PMH
+* Stores XML parts in `s3://arxiv-raw-data-bucket/raw/latest/{run_date}/`
 
-Keys are designed for high-cardinality partitions (e.g., paper_id, category_id) to avoid hot partitions.
+### 2. `lambda/xml_to_json`
 
-Avoided deep nested writes or large single-item payloads to stay within DynamoDB’s 400KB per item limit.
+* Triggered by S3 upload events
+* Converts XML into newline-delimited JSON (NDJSON)
+* Saves to `parsed/{run_date}/`
 
-## Data Quality & Anomaly Handling
-Challenges Encountered:
-Multiple Categories per Paper: ArXiv papers can have multiple primary and secondary categories, requiring careful deduplication and linkage logic.
+### 3. `glue/glue_etl_job.py`
 
-Non-standard Characters: Abstracts and titles sometimes contain LaTeX or unicode artifacts; cleaned or escaped during JSON processing.
+* Reads parsed JSON
+* Produces:
 
-Unstable API behavior: The API occasionally returns malformed entries or rate-limits during high-frequency access.
+  * `paper`, `contributor`, `paper_contributor`
+  * `category`, `paper_category`, `paper_submission`
+* Outputs in Parquet under `tables/`
 
-Safeguards Implemented:
-Validation rules for paper_id, title, and updated_date ensure schema consistency before storage.
+## Quickstart
 
-Retry with exponential backoff handles intermittent API failures.
+```bash
+# Install requirements
+pip install boto3
 
-Deduplication logic avoids re-processing papers with unchanged updated_date.
+# Deploy lambdas
+bash setup/deploy_all.sh
 
-## Fault Tolerance and Recovery
-Idempotent Writes: Upserts are used in DynamoDB to allow safe re-runs without data duplication.
+# Manually run Glue job
+aws glue start-job-run --job-name GLUEETLJob
+```
 
-Checkpointing: Each Lambda run logs its last successful start offset and timestamp, enabling resumable jobs.
+## Test
 
-CloudWatch Alarms: Triggers alerting for:
+```bash
+pytest tests/
+```
 
-Lambda timeout or failure
+## Future Enhancements
 
-Unusually high error rate
+* Glue catalog integration
+* Real-time alerts for manifest failures
+* Author disambiguation logic
+* Semantic vector embedding pipeline for recommendations
 
-Drop in the number of records ingested
-
-## Assumptions
-Paper ID is globally unique and can be used as the primary key for both raw and structured storage.
-
-Categories are relatively stable, i.e., arXiv rarely renames or deprecates them. If they do, the system should be re-run from scratch for affected disciplines.
-
-Downstream teams (analysts, data scientists) prefer JSON for flexibility and DynamoDB tables for structured queries via Athena or ETL exports.
-
-Title and abstract fields are sufficient for initial ML-based recommendation prototypes—no full-text parsing is included in this phase.
-
-## Future Extensions
-Scheduled retraining for NLP-based paper vectorization on S3-stored JSON.
-
-ETL to Redshift or Athena for large-scale SQL querying.
-
-DynamoDB-to-OpenSearch sync for text-based relevance search on arXiv abstracts.
-
-Real-time pipeline triggers for newly published papers, using EventBridge or SNS.
 
