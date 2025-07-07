@@ -58,7 +58,7 @@ Set CloudWatch Alarm:
 
 ###  Metrics
 - Job Success/Fail status
-- # of records written per table
+- number of records written per table
 - Job duration
 
 ###  Alerts
