@@ -33,7 +33,6 @@ arxiv-pipeline/
 ├── lambda/                       # Lambda function code
 ├── glue/                         # Glue ETL job code and schema
 ├── docs/                         # Markdown documentation
-└── tests/                        # Unit test scripts
 ```
 
 ## Modules
@@ -70,12 +69,6 @@ bash setup/deploy_all.sh
 
 # Manually run Glue job
 aws glue start-job-run --job-name GLUEETLJob
-```
-
-## Test
-
-```bash
-pytest tests/
 ```
 
 ## Future Enhancements
